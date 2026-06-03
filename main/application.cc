@@ -54,6 +54,12 @@ Application::~Application() {
     vEventGroupDelete(event_group_);
 }
 
+//@VC Add GetProtocol interface for Serial Chat Task
+Protocol* Application::GetProtocol()
+{
+    return protocol_.get();
+}
+
 bool Application::SetDeviceState(DeviceState state) {
     return state_machine_.TransitionTo(state);
 }
@@ -1143,19 +1149,36 @@ void Application::ResetProtocol() {
 //@VC Add Serial Chat Task
 void Application::SerialChatTask(void* param)
 {
-    auto app = static_cast<Application*>(param);
+    char line[512];
 
-    char line[256];
+    while (true)
+    {
+        if (fgets(line, sizeof(line), stdin))
+        {
+            std::string text(line);
 
-    ESP_LOGI("SERIAL_CHAT", "Serial Chat Started");
+            while (!text.empty() &&
+                  (text.back() == '\n' ||
+                   text.back() == '\r'))
+            {
+                text.pop_back();
+            }
 
-    while (true) {
+            if (text.empty())
+                continue;
 
-        if (fgets(line, sizeof(line), stdin)) {
+            auto protocol =
+                Application::GetInstance().GetProtocol();
 
-            ESP_LOGI("SERIAL_CHAT", "USER: %s", line);
+            if (protocol == nullptr)
+            {
+                printf("Protocol not ready\n");
+                continue;
+            }
 
-            // sementara hanya echo
+            printf("USER> %s\n", text.c_str());
+
+            protocol->SendTextChat(text);
         }
 
         vTaskDelay(pdMS_TO_TICKS(10));

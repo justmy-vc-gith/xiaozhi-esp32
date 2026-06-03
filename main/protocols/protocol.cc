@@ -88,3 +88,24 @@ bool Protocol::IsTimeout() const {
     }
     return timeout;
 }
+
+//@VC Add SendTextChat interface implementation
+void Protocol::SendTextChat(const std::string& text)
+{
+    std::string msg =
+        "{\"session_id\":\"" + session_id_ +
+        "\",\"type\":\"listen\","
+        "\"state\":\"detect\","
+        "\"text\":\"" + text + "\"}";
+
+    SendText(msg);
+}
+// void Protocol::SendTextChat(const std::string& text)
+// {
+//     std::string msg =
+//         "{\"session_id\":\"" + session_id_ +
+//         "\",\"type\":\"stt\","
+//         "\"text\":\"" + text + "\"}";
+
+//     SendText(msg);
+// }

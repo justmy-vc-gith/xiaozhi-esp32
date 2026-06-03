@@ -123,6 +123,7 @@ public:
     void ResetProtocol();
 
     static void SerialChatTask(void* param);        //@VC Add Serial Chat Task
+    Protocol* GetProtocol();                        //@VC Add GetProtocol interface for Serial Chat Task
 
 private:
     Application();
