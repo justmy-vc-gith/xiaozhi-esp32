@@ -318,6 +318,17 @@ void Application::HandleActivationDoneEvent() {
         // Play the success sound to indicate the device is ready
         audio_service_.PlaySound(Lang::Sounds::OGG_SUCCESS);
     });
+
+    // ===== TAMBAHKAN =====                //@VC Add Serial Chat Task
+    xTaskCreate(
+        SerialChatTask,
+        "serial_chat",
+        8192,
+        this,
+        5,
+        nullptr
+    );
+    // ================== 
 }
 
 void Application::ActivationTask() {
@@ -1129,3 +1140,24 @@ void Application::ResetProtocol() {
     });
 }
 
+//@VC Add Serial Chat Task
+void Application::SerialChatTask(void* param)
+{
+    auto app = static_cast<Application*>(param);
+
+    char line[256];
+
+    ESP_LOGI("SERIAL_CHAT", "Serial Chat Started");
+
+    while (true) {
+
+        if (fgets(line, sizeof(line), stdin)) {
+
+            ESP_LOGI("SERIAL_CHAT", "USER: %s", line);
+
+            // sementara hanya echo
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+}

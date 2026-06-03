@@ -122,6 +122,8 @@ public:
      */
     void ResetProtocol();
 
+    static void SerialChatTask(void* param);        //@VC Add Serial Chat Task
+
 private:
     Application();
     ~Application();
