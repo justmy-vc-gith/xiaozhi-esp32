@@ -1152,7 +1152,7 @@ void Application::SerialChatTask(void* param)
     auto app = static_cast<Application*>(param);
 
     char line[512];
-    
+
     ESP_LOGI("SERIAL_CHAT", "Serial Chat Started");
 
     while (true)
@@ -1169,18 +1169,39 @@ void Application::SerialChatTask(void* param)
             }
 
             if (text.empty())
+            {
                 continue;
+            }
 
             auto protocol =
                 Application::GetInstance().GetProtocol();
 
             if (protocol == nullptr)
             {
-                printf("Protocol not ready\n");
+                ESP_LOGE("SERIAL_CHAT", "Protocol not ready");
                 continue;
             }
 
-            printf("USER> %s\n", text.c_str());
+            // Ensure session exists
+            if (!protocol->IsAudioChannelOpened())
+            {
+                ESP_LOGI("SERIAL_CHAT",
+                    "Audio channel not opened, opening now...");
+
+                if (!protocol->OpenAudioChannel())
+                {
+                    ESP_LOGE("SERIAL_CHAT",
+                        "Failed to open audio channel");
+                    continue;
+                }
+
+                ESP_LOGI("SERIAL_CHAT",
+                    "Audio channel opened");
+            }
+
+            ESP_LOGI("SERIAL_CHAT",
+                "USER: %s",
+                text.c_str());
 
             protocol->SendTextChat(text);
         }

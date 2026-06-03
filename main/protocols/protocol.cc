@@ -92,6 +92,7 @@ bool Protocol::IsTimeout() const {
 //@VC Add SendTextChat interface implementation
 void Protocol::SendTextChat(const std::string& text)
 {
+    ESP_LOGI(TAG, "MQTT TX: %s", text.c_str());
     std::string msg =
         "{\"session_id\":\"" + session_id_ +
         "\",\"type\":\"listen\","
