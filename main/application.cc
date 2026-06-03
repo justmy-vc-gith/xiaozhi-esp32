@@ -1149,7 +1149,11 @@ void Application::ResetProtocol() {
 //@VC Add Serial Chat Task
 void Application::SerialChatTask(void* param)
 {
+    auto app = static_cast<Application*>(param);
+
     char line[512];
+    
+    ESP_LOGI("SERIAL_CHAT", "Serial Chat Started");
 
     while (true)
     {
