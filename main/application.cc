@@ -1221,7 +1221,13 @@ void Application::SerialChatTask(void* param)
         if (fgets(line, sizeof(line), stdin))
         {
             std::string chunk(line);
-
+            for (size_t i = 0; i < strlen(line); i++)
+            {
+                ESP_LOGI("SERIAL_CHAT",
+                        "line[%d] = 0x%02X",
+                        (int)i,
+                        (unsigned char)line[i]);
+            }
             for (char c : chunk)
             {
                 if (c == '\r' || c == '\n')
