@@ -1267,8 +1267,7 @@ void Application::SerialChatTask(void* param)
                 {
                     inputBuffer += c;
                     ESP_LOGI("SERIAL_CHAT",
-                        "USER> %s",
-                        c.c_str());
+                        "USER> %c", c);
                 }
             }
         }
