@@ -1147,63 +1147,127 @@ void Application::ResetProtocol() {
 }
 
 //@VC Add Serial Chat Task
+// void Application::SerialChatTask(void* param)
+// {
+//     auto app = static_cast<Application*>(param);
+
+//     char line[512];
+
+//     ESP_LOGI("SERIAL_CHAT", "Serial Chat Started");
+
+//     while (true)
+//     {
+//         if (fgets(line, sizeof(line), stdin))
+//         {
+//             std::string text(line);
+
+//             while (!text.empty() &&
+//                   (text.back() == '\n' ||
+//                    text.back() == '\r'))
+//             {
+//                 text.pop_back();
+//             }
+
+//             if (text.empty())
+//             {
+//                 continue;
+//             }
+
+//             auto protocol =
+//                 Application::GetInstance().GetProtocol();
+
+//             if (protocol == nullptr)
+//             {
+//                 ESP_LOGE("SERIAL_CHAT", "Protocol not ready");
+//                 continue;
+//             }
+
+//             // Ensure session exists
+//             if (!protocol->IsAudioChannelOpened())
+//             {
+//                 ESP_LOGI("SERIAL_CHAT",
+//                     "Audio channel not opened, opening now...");
+
+//                 if (!protocol->OpenAudioChannel())
+//                 {
+//                     ESP_LOGE("SERIAL_CHAT",
+//                         "Failed to open audio channel");
+//                     continue;
+//                 }
+
+//                 ESP_LOGI("SERIAL_CHAT",
+//                     "Audio channel opened");
+//             }
+
+//             ESP_LOGI("SERIAL_CHAT",
+//                 "USER: %s",
+//                 text.c_str());
+
+//             protocol->SendTextChat(text);
+//         }
+
+//         vTaskDelay(pdMS_TO_TICKS(10));
+//     }
+// }
 void Application::SerialChatTask(void* param)
 {
-    auto app = static_cast<Application*>(param);
-
-    char line[512];
-
     ESP_LOGI("SERIAL_CHAT", "Serial Chat Started");
+
+    std::string inputBuffer;
+    char line[64];
 
     while (true)
     {
         if (fgets(line, sizeof(line), stdin))
         {
-            std::string text(line);
+            std::string chunk(line);
 
-            while (!text.empty() &&
-                  (text.back() == '\n' ||
-                   text.back() == '\r'))
+            for (char c : chunk)
             {
-                text.pop_back();
-            }
-
-            if (text.empty())
-            {
-                continue;
-            }
-
-            auto protocol =
-                Application::GetInstance().GetProtocol();
-
-            if (protocol == nullptr)
-            {
-                ESP_LOGE("SERIAL_CHAT", "Protocol not ready");
-                continue;
-            }
-
-            // Ensure session exists
-            if (!protocol->IsAudioChannelOpened())
-            {
-                ESP_LOGI("SERIAL_CHAT",
-                    "Audio channel not opened, opening now...");
-
-                if (!protocol->OpenAudioChannel())
+                if (c == '\r' || c == '\n')
                 {
-                    ESP_LOGE("SERIAL_CHAT",
-                        "Failed to open audio channel");
-                    continue;
+                    if (inputBuffer.empty())
+                        continue;
+
+                    auto protocol =
+                        Application::GetInstance().GetProtocol();
+
+                    if (protocol == nullptr)
+                    {
+                        ESP_LOGE("SERIAL_CHAT",
+                            "Protocol not ready");
+                        inputBuffer.clear();
+                        continue;
+                    }
+
+                    if (!protocol->IsAudioChannelOpened())
+                    {
+                        ESP_LOGI("SERIAL_CHAT",
+                            "Opening audio channel...");
+
+                        if (!protocol->OpenAudioChannel())
+                        {
+                            ESP_LOGE("SERIAL_CHAT",
+                                "OpenAudioChannel failed");
+
+                            inputBuffer.clear();
+                            continue;
+                        }
+                    }
+
+                    ESP_LOGI("SERIAL_CHAT",
+                        "USER> %s",
+                        inputBuffer.c_str());
+
+                    protocol->SendTextChat(inputBuffer);
+
+                    inputBuffer.clear();
                 }
-
-                ESP_LOGI("SERIAL_CHAT",
-                    "Audio channel opened");
+                else
+                {
+                    inputBuffer += c;
+                }
             }
-
-            ESP_LOGI("SERIAL_CHAT",
-                "USER: %s",
-                text.c_str());
-
-            protocol->SendTextChat(text);
         }
 
         vTaskDelay(pdMS_TO_TICKS(10));
