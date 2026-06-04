@@ -1211,7 +1211,7 @@ void Application::ResetProtocol() {
 // }
 void Application::SerialChatTask(void* param)
 {
-    ESP_LOGI("SERIAL_CHAT", "Serial Chat Started");
+    ESP_LOGI("SERIAL_CHAT", "Serial Chat Started v1");
 
     std::string inputBuffer;
     char line[64];
@@ -1262,7 +1262,7 @@ void Application::SerialChatTask(void* param)
                     }
 
                     ESP_LOGI("SERIAL_CHAT",
-                        "USER> %s",
+                        "v1 USER> %s",
                         inputBuffer.c_str());
 
                     protocol->SendTextChat(inputBuffer);
