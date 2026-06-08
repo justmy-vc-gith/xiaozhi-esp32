@@ -240,7 +240,7 @@ int NoAudioCodec::Write(const int16_t* data, int samples) {
 
 int NoAudioCodec::Read(int16_t* dest, int samples) {
     size_t bytes_read;
-    static uint32_t dbg = 0;
+    static uint32_t dbg = 0;                        //@VC add debug mic
     constexpr uint32_t kReadTimeoutMs = 200;
 
     std::vector<int32_t> bit32_buffer(samples);
@@ -250,13 +250,14 @@ int NoAudioCodec::Read(int16_t* dest, int samples) {
 
     samples = bytes_read / sizeof(int32_t);
     for (int i = 0; i < samples; i++) {
-        int32_t value = bit32_buffer[i] >> 16;
-        if (++dbg % 2000 == 0) {
-            ESP_LOGI("RAW_MIC",
-                "raw=%ld shifted=%ld",
-                (long)bit32_buffer[0],
-                (long)(bit32_buffer[0] >> 16));
-        }
+        int32_t value = bit32_buffer[i] >> 15;          //@VC modif to match the bit shift in Write function, also shift back to 16-bit range
+        //@VC add debug mic
+        // if (++dbg % 2000 == 0) {
+        //     ESP_LOGI("RAW_MIC",
+        //         "raw=%ld shifted=%ld",
+        //         (long)bit32_buffer[0],
+        //         (long)(bit32_buffer[0] >> 16));
+        // }
         dest[i] = (value > INT16_MAX) ? INT16_MAX : (value < -INT16_MAX) ? -INT16_MAX : (int16_t)value;
     }
     return samples;
