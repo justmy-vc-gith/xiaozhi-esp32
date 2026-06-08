@@ -101,6 +101,34 @@ void AfeAudioProcessor::Feed(std::vector<int16_t>&& data) {
     input_buffer_.insert(input_buffer_.end(), data.begin(), data.end());
     size_t chunk_size = afe_iface_->get_feed_chunksize(afe_data_) * codec_->input_channels();
     while (input_buffer_.size() >= chunk_size) {
+        // ==========================================
+        // DEBUG AUDIO LEVEL
+        // ==========================================
+        int16_t peak = 0;
+        int64_t sum = 0;
+
+        for (size_t i = 0; i < chunk_size; i++) {
+            int16_t sample = input_buffer_[i];
+            int16_t abs_sample = abs(sample);
+
+            if (abs_sample > peak) {
+                peak = abs_sample;
+            }
+
+            sum += abs_sample;
+        }
+
+        int avg = sum / chunk_size;
+
+        static uint32_t counter = 0;
+
+        // tampilkan setiap 20 frame supaya log tidak banjir
+        if (++counter % 20 == 0) {
+            ESP_LOGI("MIC_DEBUG",
+                     "peak=%d avg=%d",
+                     peak,
+                     avg);
+        }
         afe_iface_->feed(afe_data_, input_buffer_.data());
         input_buffer_.erase(input_buffer_.begin(), input_buffer_.begin() + chunk_size);
     }
