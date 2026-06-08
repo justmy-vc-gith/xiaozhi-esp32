@@ -250,13 +250,13 @@ int NoAudioCodec::Read(int16_t* dest, int samples) {
 
     samples = bytes_read / sizeof(int32_t);
     for (int i = 0; i < samples; i++) {
-        int32_t value = bit32_buffer[i] >> 14;
-        if (++dbg % 200 == 0) {
-        ESP_LOGI("RAW_MIC",
-            "raw=%ld shifted=%ld",
-            (long)bit32_buffer[0],
-            (long)(bit32_buffer[0] >> 14));
-}
+        int32_t value = bit32_buffer[i] >> 16;
+        if (++dbg % 2000 == 0) {
+            ESP_LOGI("RAW_MIC",
+                "raw=%ld shifted=%ld",
+                (long)bit32_buffer[0],
+                (long)(bit32_buffer[0] >> 16));
+        }
         dest[i] = (value > INT16_MAX) ? INT16_MAX : (value < -INT16_MAX) ? -INT16_MAX : (int16_t)value;
     }
     return samples;
