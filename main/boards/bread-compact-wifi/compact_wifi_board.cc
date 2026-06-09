@@ -147,6 +147,53 @@ private:
         });
     }
 
+    //@VC Add a simple JSON string escaper to ensure special characters in the search query do not break the JSON format
+    static std::string EscapeJson(const std::string& input)
+    {
+        std::string output;
+        output.reserve(input.length());
+
+        for (char c : input)
+        {
+            switch (c)
+            {
+                case '\"':
+                    output += "\\\"";
+                    break;
+
+                case '\\':
+                    output += "\\\\";
+                    break;
+
+                case '\b':
+                    output += "\\b";
+                    break;
+
+                case '\f':
+                    output += "\\f";
+                    break;
+
+                case '\n':
+                    output += "\\n";
+                    break;
+
+                case '\r':
+                    output += "\\r";
+                    break;
+
+                case '\t':
+                    output += "\\t";
+                    break;
+
+                default:
+                    output += c;
+                    break;
+            }
+        }
+
+        return output;
+    }
+
     // 物联网初始化，逐步迁移到 MCP 协议
     void InitializeTools() {
         static LampController lamp(LAMP_GPIO);
@@ -154,7 +201,7 @@ private:
         auto &mcp_server = McpServer::GetInstance();
         mcp_server.AddTool(
             "self.search_web",
-            "Search information on internet",
+            "Search information from internet",
             PropertyList({
                 Property(
                     "query",
@@ -164,31 +211,68 @@ private:
             [](const PropertyList& properties)
                 -> ReturnValue
             {
-
                 auto query =
                     properties["query"]
                     .value<std::string>();
 
-                std::string url =
-                    "http://192.168.1.104:8000/search?q="
-                    + query;
+                ESP_LOGI("MCP_SEARCH", "QUERY: %s", query.c_str());
 
                 auto http =
                     Board::GetInstance()
                     .GetNetwork()
-                    ->CreateHttp(10);
+                    ->CreateHttp(20);
 
-                if (!http->Open("GET", url))
+                if (!http)
+                {
+                    throw std::runtime_error(
+                        "Cannot create HTTP client"
+                    );
+                }
+
+                if (!http->Open(
+                        "POST",
+                        "http://192.168.1.104:8000/search"))
                 {
                     throw std::runtime_error(
                         "Cannot connect to server"
                     );
                 }
 
+                http->SetHeader(
+                    "Content-Type",
+                    "application/json"
+                );
+
+                std::string body =
+                    "{\"query\":\"" +
+                    EscapeJson(query) +
+                    "\"}";
+
+                ESP_LOGI("MCP_SEARCH", "POST BODY: %s", body.c_str());
+
+                http->Write(
+                    body.c_str(),
+                    body.length()
+                );
+
+                int status_code =
+                    http->GetStatusCode();
+
+                ESP_LOGI("MCP_SEARCH", "HTTP STATUS: %d", status_code);
+
                 auto result =
                     http->ReadAll();
 
+                ESP_LOGI("MCP_SEARCH", "RESPONSE: %s", result.c_str());
+
                 http->Close();
+
+                if (status_code != 200)
+                {
+                    throw std::runtime_error(
+                        "HTTP Error: " + result
+                    );
+                }
 
                 return result;
             }
