@@ -150,6 +150,49 @@ private:
     // 物联网初始化，逐步迁移到 MCP 协议
     void InitializeTools() {
         static LampController lamp(LAMP_GPIO);
+		//@VC add custom mcp tools
+        auto &mcp_server = McpServer::GetInstance();
+        mcp_server.AddTool(
+            "self.search_web",
+            "Search information on internet",
+            PropertyList({
+                Property(
+                    "query",
+                    kPropertyTypeString
+                )
+            }),
+            [](const PropertyList& properties)
+                -> ReturnValue
+            {
+
+                auto query =
+                    properties["query"]
+                    .value<std::string>();
+
+                std::string url =
+                    "http://192.168.1.104:8000/search?q="
+                    + query;
+
+                auto http =
+                    Board::GetInstance()
+                    .GetNetwork()
+                    ->CreateHttp(10);
+
+                if (!http->Open("GET", url))
+                {
+                    throw std::runtime_error(
+                        "Cannot connect to server"
+                    );
+                }
+
+                auto result =
+                    http->ReadAll();
+
+                http->Close();
+
+                return result;
+            }
+        );
     }
 
 public:
