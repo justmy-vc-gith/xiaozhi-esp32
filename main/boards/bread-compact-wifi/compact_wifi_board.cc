@@ -148,135 +148,135 @@ private:
     }
 
     //@VC Add a simple JSON string escaper to ensure special characters in the search query do not break the JSON format
-    static std::string EscapeJson(const std::string& input)
-    {
-        std::string output;
-        output.reserve(input.length());
+    // static std::string EscapeJson(const std::string& input)
+    // {
+    //     std::string output;
+    //     output.reserve(input.length());
 
-        for (char c : input)
-        {
-            switch (c)
-            {
-                case '\"':
-                    output += "\\\"";
-                    break;
+    //     for (char c : input)
+    //     {
+    //         switch (c)
+    //         {
+    //             case '\"':
+    //                 output += "\\\"";
+    //                 break;
 
-                case '\\':
-                    output += "\\\\";
-                    break;
+    //             case '\\':
+    //                 output += "\\\\";
+    //                 break;
 
-                case '\b':
-                    output += "\\b";
-                    break;
+    //             case '\b':
+    //                 output += "\\b";
+    //                 break;
 
-                case '\f':
-                    output += "\\f";
-                    break;
+    //             case '\f':
+    //                 output += "\\f";
+    //                 break;
 
-                case '\n':
-                    output += "\\n";
-                    break;
+    //             case '\n':
+    //                 output += "\\n";
+    //                 break;
 
-                case '\r':
-                    output += "\\r";
-                    break;
+    //             case '\r':
+    //                 output += "\\r";
+    //                 break;
 
-                case '\t':
-                    output += "\\t";
-                    break;
+    //             case '\t':
+    //                 output += "\\t";
+    //                 break;
 
-                default:
-                    output += c;
-                    break;
-            }
-        }
+    //             default:
+    //                 output += c;
+    //                 break;
+    //         }
+    //     }
 
-        return output;
-    }
+    //     return output;
+    // }
 
     // 物联网初始化，逐步迁移到 MCP 协议
     void InitializeTools() {
         static LampController lamp(LAMP_GPIO);
 		//@VC add custom mcp tools
-        auto &mcp_server = McpServer::GetInstance();
-        mcp_server.AddTool(
-            "self.search_web",
-            "Search information from internet",
-            PropertyList({
-                Property(
-                    "query",
-                    kPropertyTypeString
-                )
-            }),
-            [](const PropertyList& properties)
-                -> ReturnValue
-            {
-                auto query =
-                    properties["query"]
-                    .value<std::string>();
+        // auto &mcp_server = McpServer::GetInstance();
+        // mcp_server.AddTool(
+        //     "self.search_web",
+        //     "Search information from internet",
+        //     PropertyList({
+        //         Property(
+        //             "query",
+        //             kPropertyTypeString
+        //         )
+        //     }),
+        //     [](const PropertyList& properties)
+        //         -> ReturnValue
+        //     {
+        //         auto query =
+        //             properties["query"]
+        //             .value<std::string>();
 
-                ESP_LOGI("MCP_SEARCH", "QUERY: %s", query.c_str());
+        //         ESP_LOGI("MCP_SEARCH", "QUERY: %s", query.c_str());
 
-                auto http =
-                    Board::GetInstance()
-                    .GetNetwork()
-                    ->CreateHttp(20);
+        //         auto http =
+        //             Board::GetInstance()
+        //             .GetNetwork()
+        //             ->CreateHttp(20);
 
-                if (!http)
-                {
-                    throw std::runtime_error(
-                        "Cannot create HTTP client"
-                    );
-                }
+        //         if (!http)
+        //         {
+        //             throw std::runtime_error(
+        //                 "Cannot create HTTP client"
+        //             );
+        //         }
 
-                if (!http->Open(
-                        "POST",
-                        "http://192.168.1.104:8000/search"))
-                {
-                    throw std::runtime_error(
-                        "Cannot connect to server"
-                    );
-                }
+        //         if (!http->Open(
+        //                 "POST",
+        //                 "http://192.168.1.104:8000/search"))
+        //         {
+        //             throw std::runtime_error(
+        //                 "Cannot connect to server"
+        //             );
+        //         }
 
-                http->SetHeader(
-                    "Content-Type",
-                    "application/json"
-                );
+        //         http->SetHeader(
+        //             "Content-Type",
+        //             "application/json"
+        //         );
 
-                std::string body =
-                    "{\"query\":\"" +
-                    EscapeJson(query) +
-                    "\"}";
+        //         std::string body =
+        //             "{\"query\":\"" +
+        //             EscapeJson(query) +
+        //             "\"}";
 
-                ESP_LOGI("MCP_SEARCH", "POST BODY: %s", body.c_str());
+        //         ESP_LOGI("MCP_SEARCH", "POST BODY: %s", body.c_str());
 
-                http->Write(
-                    body.c_str(),
-                    body.length()
-                );
+        //         http->Write(
+        //             body.c_str(),
+        //             body.length()
+        //         );
 
-                int status_code =
-                    http->GetStatusCode();
+        //         int status_code =
+        //             http->GetStatusCode();
 
-                ESP_LOGI("MCP_SEARCH", "HTTP STATUS: %d", status_code);
+        //         ESP_LOGI("MCP_SEARCH", "HTTP STATUS: %d", status_code);
 
-                auto result =
-                    http->ReadAll();
+        //         auto result =
+        //             http->ReadAll();
 
-                ESP_LOGI("MCP_SEARCH", "RESPONSE: %s", result.c_str());
+        //         ESP_LOGI("MCP_SEARCH", "RESPONSE: %s", result.c_str());
 
-                http->Close();
+        //         http->Close();
 
-                if (status_code != 200)
-                {
-                    throw std::runtime_error(
-                        "HTTP Error: " + result
-                    );
-                }
+        //         if (status_code != 200)
+        //         {
+        //             throw std::runtime_error(
+        //                 "HTTP Error: " + result
+        //             );
+        //         }
 
-                return result;
-            }
-        );
+        //         return result;
+        //     }
+        // );
     }
 
 public:
